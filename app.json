@@ -1,0 +1,13 @@
+{
+  "name": "socialdistribution",
+  "scripts": {
+  },
+  "env": {
+  },
+  "addons": [
+
+  ],
+  "buildpacks": [
+
+  ]
+}
