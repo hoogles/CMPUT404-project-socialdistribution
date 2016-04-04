@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+	<header>
+	<h1 class="head"> Welcome to the Social Distribution</h1>
+	<form action="/logout" method="post">
+		<input type="submit" class="logout" value="logout" />
+	</form>
+	<form action="/upload" method="post" enctype="multipart/form-data">
+		<input type="text" autocomplete="off" name="post_text" class="head" placeholder="post"/>
+		<input type="file" accept="image/*" name="post_image"/>
+		<br/>		
+		<input type="radio" name="privacy" value="0" checked>public
+		<input type="radio" name="privacy" value="1" >friends only
+		<input type="radio" name="privacy" value="2" >private
+		<input type="submit"/>
+	</form>
+	<hr />
+	</header>
+
+	<div id="content">
+	<p id="post"></p>
+	</div>
+	<script>
+	var posts = {};
+	var friend_list = [];
+	var users = {};
+	var j=0;
+
+	function printPosts() {
+		//clearposts();
+		var i =0;
+		for(var key in posts){
+			if (i>1=0){
+				break;
+			}
+			key = parseInt(key);
+			key = key-j;
+			key = key.toString();
+			document.getElementById("content").innerHTML+="<b>"+posts[key][4]+"</b>: ";	
+			document.getElementById("content").innerHTML+=posts[key][1];
+			if(posts[key][2]){
+				var img_src = "http://"+location.host + "/images/"+posts[key][2];
+				document.getElementById("content").innerHTML+="<br/ > <img src=\""+img_src+"\" class=\"img_post\">";
+			}
+			document.getElementById("content").innerHTML+="<br><form action=\"/befriend/"+posts[key][4]+"\"><input type=\"submit\" value=\"add friend\"></form>";
+
+			document.getElementById("content").innerHTML+="<br><form action=\"/unfriend/"+posts[key][4]+"\"><input type=\"submit\" value=\"unfriend\"/ ></form>";
+
+			document.getElementById("content").innerHTML+="<br><form action=\"/delete/"+posts[key][0]+"\"><input type=\"submit\" value=\"delete\"></form>";
+			document.getElementById("content").innerHTML+="<hr/ >";
+			j = j+1;
+			i+=1;
+		}
+		j;
+
+	}
+
+	function update() {
+    	var xhr = new XMLHttpRequest();
+    	xhr.onreadystatechange = function () {
+    	    if (xhr.readyState==4) {
+    	        try {
+    	            if (xhr.status==200) {
+    	                posts = JSON.parse(xhr.response);
+			//j = posts["0"][0];
+			printPosts();
+  			    		
+    	            }
+    	        } 
+    	        catch(e) {
+    	            alert('Error: ' + e.name);
+    	        }
+    	    }
+   	 };
+    	xhr.open("GET", "/update", true);
+    	xhr.setRequestHeader("Content-Type","application/json;charset=UTF-8");
+   	xhr.send();
+
+	}
+/**
+	function users() {
+    	var xhr = new XMLHttpRequest();
+    	xhr.onreadystatechange = function () {
+    	    if (xhr.readyState==4) {
+    	        try {
+    	            if (xhr.status==200) {
+    	                users = JSON.parse(xhr.response);
+			printUsers();			
+  			    		
+    	            }
+    	        } 
+    	        catch(e) {
+    	            alert('Error: ' + e.name);
+    	        }
+    	    }
+   	 };
+    	xhr.open("GET", "/get_users", true);
+    	xhr.setRequestHeader("Content-Type","application/text;charset=UTF-8");
+   	xhr.send();
+
+	}*/
+
+	//users();	
+	//document.getElementById("content").innerHTML+=friends_list;
+
+	//curtousy of stackoverflow.com/questions/9439725/javascript-how-to-detect-if-browser-window-is-scrolled-to-bottom
+	update();
+	window.onscroll = function(ev) 
+	{
+		if ((window.innerHeight + window.scrollY)>=document.body.offsetHeight){
+			printPosts();
+			document.getElementById("content").innerHTML+="bottom";
+			}
+	};		
+
+	
+	</script>
+	
+	
+
+{% endblock %}
+
+

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="page">
+	<header>
+	<h1 class="head"> Welcome to the Social Distribution</h1>
+	<p class="head">Post to your stream</p>
+	<form action="/logout" method="post">
+		<input type="submit" class="logout" value="logout" />
+	</form>
+	<hr />
+	</header>
+
+	<hr/>
+	<div id="content">
+	<p id="post"></p>
+	</div>
+<script>
+	var freqs_list = {};
+
+	function printFReqs(){
+		for (key in freqs_list){
+			freq = freqs_list[key];
+			var username = freq[0]			
+			document.getElementById("content").innerHTML+="<b><a href=\"http://socdist-lab6lramsey.rhcloud.com/"+username+"\">"+username+"</b>: ";	
+			document.getElementById("content").innerHTML+="<br><form action=\"/befriend/"+usermail+"\"><input type=\"submit\" value=\"add friend\"></form>";
+			document.getElementById("content").innerHTML+="<hr/ >";
+		}
+	}
+	
+	function get_freqs_list() {
+    	var xhr = new XMLHttpRequest();
+    	xhr.onreadystatechange = function () {
+    	    if (xhr.readyState==4) {
+    	        try {
+    	            if (xhr.status==200) {
+    	                freqs_list = JSON.parse(xhr.response);
+			printFReqs();
+    	            }
+    	        } 
+    	        catch(e) {
+    	            alert('Error: ' + e.name);
+    	        }
+    	    }
+   	 };
+    	xhr.open("GET", "/get_freqs", true);
+    	xhr.setRequestHeader("Content-Type","application/json;charset=UTF-8");
+   	xhr.send();
+
+	}
+	get_freqs_list();
+
+	
+</script>
+</div>
+{% endblock %}
+</html>

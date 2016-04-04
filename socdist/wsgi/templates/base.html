@@ -1,0 +1,128 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title> Social Distribution</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+<style>
+	body {
+		display: block;
+		position: relative;
+		overflow-x: hidden;
+	}
+	header {
+		display: block;
+		position: fixed;
+		top: -20;
+		background-color: white;
+		width: 100%;
+		z-index: 2;
+	}
+	.img_post{
+		display: block; 
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.head {
+		display: flex;
+	}
+	.logout {
+		display: block;
+		position: fixed;
+		top: 0;
+		right: 0;
+	}
+	.comment{
+		position: relative; 
+		left: 5em;
+	}
+	h1.head{
+		background-color: #330033;
+	
+		text-align: center;
+		margin-left: auto;
+		margin-right: auto;
+		color: white;
+	}
+	p.head {
+		position: relative; 
+		left: 1em;
+	}
+	input.head {
+		width:100%;
+	}
+	#content {
+		display: block;
+		position: relative;
+		top: 20em;
+
+	}
+	#userinfo {
+		display: block;
+		position: relative;
+		top: 15em;
+
+	}
+	#page {
+		display: block;
+		position: relative;
+	}
+	#post{}
+	#freqs{
+		display:block;
+		position:absolute;
+		top:0;
+		right: 10;
+	}
+
+</style>
+</head>
+
+<body>
+<form id="freqs" action="/find_friend_request" method="get">
+	<input type="submit" value="Friend Requests" >
+</form>
+<script>
+	window.alert = function() {};
+
+	var freqs = 0;
+	
+	function get_freqs() {
+    	var xhr = new XMLHttpRequest();
+	freqs = 0;
+    	xhr.onreadystatechange = function () {
+    	    if (xhr.readyState==4) {
+    	        try {
+    	            if (xhr.status==200) {
+    	                var freqs_list = JSON.parse(xhr.response);
+			for (key in freqs_list){
+				freqs +=1;
+			}
+  			    		
+    	            }
+    	        } 
+    	        catch(e) {
+    	            alert('Error: ' + e.name);
+    	        }
+    	    }
+   	 };
+    	xhr.open("GET", "/get_freqs", true);
+    	xhr.setRequestHeader("Content-Type","application/json;charset=UTF-8");
+   	xhr.send();
+
+	}
+	get_freqs();
+
+	if (freqs==0) {
+		document.getElementById("freqs").style.visibility = "hidden";
+	}
+	else {
+		document.getElementById("count").innerHtml = freqs;
+	}
+</script>
+{% block content %}{% endblock %}
+</body>
+</html>

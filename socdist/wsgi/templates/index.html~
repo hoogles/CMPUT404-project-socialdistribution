@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body>
+	<div id="page">
+	<header>
+	<h1 class="head"> Welcome to the Social Distribution</h1>
+	<p class="head"> Post to your stream </p>
+	<form action="/logout" method="post">
+		<input type="submit" class="logout" value="logout" />
+	</form>
+	<form action="/upload" method="post" enctype="multipart/form-data">
+		<input type="text" autocomplete="off" name="post_text" class="head" placeholder="post"/>
+		<input type="file" accept="image/*" name="post_image" placeholder="upload">upload</input>
+		<br/>		
+		<input type="radio" name="privacy" value="0" checked>public
+		<input type="radio" name="privacy" value="1" >friends only
+		<input type="radio" name="privacy" value="2" >private
+		<input type="submit"/>
+	</form>
+	<hr />
+	</header>
+	
+	<div id="content">
+	<a href="/find_friends">Find more friends!</a>
+	<p id="post"></p>
+
+	<script>
+	var posts = {};
+	var posts2 = {};
+	var posts3 = {};
+	var friends = [];
+	var comments = {};
+	var j =0;
+	var cur_user = document.cookie.split('=')[1].slice(1,-1);
+
+	function printComments() {
+		for(var key in comments){
+			var enc = comments[key][5];
+			var post_txt = comments[key][1];
+			var poster = comments[key][4];
+			var linkedto = key;
+			var post = "post-"+linkedto;
+			var isFriend = (poster in friends && enc == 1); 
+			if ((poster == cur_user || enc ==0  || isFriend))	{
+				document.getElementById(post).innerHTML+= "<div class=\"comment\">";
+				document.getElementById(post).innerHTML+="<b><a href=\"http://socdist-lab6lramsey.rhcloud.com/"+poster+"\">"+poster+"</b>: ";	
+				document.getElementById(post).innerHTML+=post_txt;
+				if(comments[key][2]){
+					var img_src = "http://"+location.host + "/images/"+comments[key][2];
+					document.getElementById(post).innerHTML+="<br/ > <img src=\""+img_src+"\" class=\"img_post\">";
+					}				
+				if (isFriend && poster!= cur_user){
+					document.getElementById(post).innerHTML+="<br><form action=\"/unfriend/"+comments[key][4]+"\"><input type=\"submit\" value=\"unfriend\"/ ></form>"; }
+				else if(poster!=cur_user) {
+					document.getElementById(post).innerHTML+="<br><form action=\"/befriend/"+comments[key][4]+"\"><input type=\"submit\" value=\"add friend\"></form>";
+				}
+				if (poster == cur_user)	{
+					document.getElementById(post).innerHTML+="<br><form action=\"/delete/"+comments[key][0]+"\"><input type=\"submit\" value=\"delete\"></form>";
+					}
+				document.getElementById(post).innerHTML+= "</div>";
+				
+				document.getElementById(post).innerHTML+="<br/ >";
+				}
+			}
+		}
+	
+
+	function printPosts() {
+		var i = 0;
+		for(var key in posts){
+			if(i>=10){
+				
+				break;
+			}
+			key = parseInt(key);
+			key = key-j;
+			key = key.toString();	
+			var enc = posts[key][5];
+			var post = posts[key][1];
+			var poster = posts[key][4];
+			var iscomment = posts[key][7];
+			if (iscomment){
+				comments[iscomment] = posts[key];
+			}
+			else{
+				var isFriend = (poster in friends && enc == 1); 
+				if ((poster == cur_user || enc ==0  || isFriend))	{
+					
+					document.getElementById("content").innerHTML+="<b><a href=\"http://socdist-lab6lramsey.rhcloud.com/"+poster+"\">"+poster+"</b>: ";	
+					document.getElementById("content").innerHTML+=post;
+					if(posts[key][2]){
+						var img_src = "http://"+location.host + "/images/"+posts[key][2];
+						document.getElementById("content").innerHTML+="<br/ > <img src=\""+img_src+"\" class=\"img_post\">";
+					}				
+					if (isFriend && poster!= cur_user){
+						document.getElementById("content").innerHTML+="<br><form action=\"/unfriend/"+posts[key][4]+"\"><input type=\"submit\" value=\"unfriend\"/ ></form>"; }
+					else if(poster!=cur_user) {
+						document.getElementById("content").innerHTML+="<br><form action=\"/befriend/"+posts[key][4]+"\"><input type=\"submit\" value=\"add friend\"></form>";
+					}
+					if (poster == cur_user)	{
+						document.getElementById("content").innerHTML+="<br><form action=\"/delete/"+posts[key][0]+"\"><input type=\"submit\" value=\"delete\"></form>";
+						}
+					document.getElementById("content").innerHTML+= "<div id=\"post-"+posts[key][0]+"\">";
+					document.getElementById("content").innerHTML+= "</div>";
+					document.getElementById("content").innerHTML+="	<form action=\"/upload_comment/"+posts[key][0]+" \" method=\"post\" enctype=\"multipart/form-data\"><input type=\"text\" autocomplete=\"off\" name=\"post_text_comment"+posts[key][0]+"\" class=\"head\" placeholder=\"comment\"/ > <input type=\"file\" accept=\"image/*\" name=\"post_image_comment"+posts[key][0]+"\" placeholder=\"upload\">upload</input><br/ ><input type=\"submit\" / ></form>";
+					document.getElementById("content").innerHTML+="<hr/ >";
+					j+=1;
+					i+=1;
+				}
+			}
+		}
+		
+	}
+
+	function pullfrom2() {
+    			$.getJSON('http://socdist3-lab6lramsey.rhcloud.com/update', function(data){
+		for(var key in data){
+			posts3[key] = data[key];		
+		}
+	
+	});
+	}
+
+
+
+		
+
+	
+	function pullfrom3() {
+		$.getJSON('http://socdist3-lab6lramsey.rhcloud.com/update', function(data){
+		for(var key in data){
+			posts2[key] = data[key];		
+		}
+	
+	});
+
+	}
+
+	//Pull from all 3 servers and sort by most recent
+	//Return all as posts
+	//client side to reduce server strain
+	function conjoin(){
+		//update the posts first; main is updated already
+		pullfrom2();
+		pullfrom3();
+		var posts1 = posts;
+		posts= {};
+		var i = 0;
+		for(var key in posts1){
+			var post = posts1[key];
+			posts[i] = post;
+			i += 1;
+			
+		}
+		var start_two = i;
+		for(var key in posts2){
+			var post = posts2[key];
+			posts[i] = post;
+			i += 1;
+		}
+		var start_three = i;
+		for(var key in posts3){
+			var post = posts3[key];
+			posts[i] = post;
+			i += 1;			
+		}
+	}
+
+	function update() {
+    	var xhr = new XMLHttpRequest();
+    	xhr.onreadystatechange = function () {
+    	    if (xhr.readyState==4) {
+    	        try {
+    	            if (xhr.status==200) {
+    	                posts = JSON.parse(xhr.response);
+			conjoin();
+			printPosts();
+			printComments(); 
+  			    		
+    	            }
+    	        } 
+    	        catch(e) {
+    	            alert('Error: ' + e.name);
+    	        }
+    	    }
+   	 };
+    	xhr.open("GET", "/update", true);
+    	xhr.setRequestHeader("Content-Type","application/json;charset=UTF-8");
+   	xhr.send();
+
+	}
+
+	function get_data(x) {
+		for(var key in x){
+			var friend = x[key];
+			friends_list.push(friend[0]);
+		}
+	}
+	function friends() {
+    	var xhr = new XMLHttpRequest();
+    	xhr.onreadystatechange = function () {
+    	    if (xhr.readyState==4) {
+    	        try {
+    	            if (xhr.status==200) {
+    	                get_data(JSON.parse(xhr.response)); 			    		
+    	            }
+    	        } 
+    	        catch(e) {
+    	            alert('Error: ' + e.name);
+    	        }
+    	    }
+   	 };
+    	xhr.open("GET", "/get_friends", true);
+    	xhr.setRequestHeader("Content-Type","application/json;charset=UTF-8");
+   	xhr.send();
+
+	}
+
+	//friends();
+	//document.getElementById("content").innerHTML+=friends_list;
+	window.setInterval(update(), 1000);
+
+	</script>
+
+	
+	</div></div>
+</body>
+{% endblock %}
+</html>
+

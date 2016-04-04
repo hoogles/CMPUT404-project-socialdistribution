@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body>
+<div id="page">
+	<header>
+	<h1 class="head"> Welcome to the Social Distribution</h1>
+	<p class="head">Post to your stream</p>
+	<form action="/logout" method="post">
+		<input type="submit" class="logout" value="logout" />
+	</form>
+	<hr />
+	</header>
+
+	<hr/>
+	<div id="content">
+	<p id="post"></p>
+	</div>
+	<script>
+	var users = {};
+	function printUsers() {
+		for(var key in users){
+			var user = users[key];
+			var username;
+			try{
+				username=user[3];
+			}
+			catch(err) {
+				username=user[0];
+			}
+			var usermail=user[0];
+			document.getElementById("content").innerHTML+="<b><a href=\"http://socdist-lab6lramsey.rhcloud.com/"+usermail+"\">"+usermail+"</b>: ";	
+			document.getElementById("content").innerHTML+=username;
+			document.getElementById("content").innerHTML+="<br><form action=\"/befriend/"+usermail+"\"><input type=\"submit\" value=\"add friend\"></form>";
+			document.getElementById("content").innerHTML+="<hr/ >";
+		
+		}
+		
+	}
+
+	function get_users() {
+    	var xhr = new XMLHttpRequest();
+    	xhr.onreadystatechange = function () {
+    	    if (xhr.readyState==4) {
+    	        try {
+    	            if (xhr.status==200) {
+    	                users = JSON.parse(xhr.response);
+			printUsers();
+  			    		
+    	            }
+    	        } 
+    	        catch(e) {
+    	            alert('Error: ' + e.name);
+    	        }
+    	    }
+   	 };
+    	xhr.open("GET", "/get_users", true);
+    	xhr.setRequestHeader("Content-Type","application/json;charset=UTF-8");
+   	xhr.send();
+
+	}
+	get_users();
+	</script>
+
+	<script>
+	var posts = {};
+	var cur_user = document.cookie.split('=')[1].slice(1,-1);
+
+function printPosts() {
+		for(var key in posts){
+			var enc = posts[key][5];
+			var post = posts[key][1];
+			var poster = posts[key][4];
+			//var cur_user = poster;
+			//var isFriend = (poster in friend_list && enc == 1); //|| (poster in friend_list && enc == 1)
+			if (poster == cur_user || enc ==0 )	{
+				document.getElementById("content").innerHTML+="<b>"+poster+"</b>: ";	
+				document.getElementById("content").innerHTML+=post;
+				if(posts[key][2]){
+					var img_src = "http://"+location.host + "/images/"+posts[key][2];
+					document.getElementById("content").innerHTML+="<br/ > <img src=\""+img_src+"\" class=\"img_post\">";
+				}
+				document.getElementById("content").innerHTML+="<br><form action=\"/befriend/"+posts[key][4]+"\"><input type=\"submit\" value=\"add friend\"></form>";
+				document.getElementById("content").innerHTML+="<br><form action=\"/unfriend/"+posts[key][4]+"\"><input type=\"submit\" value=\"unfriend\"/ ></form>";
+				
+				if (poster == cur_user)	{
+					document.getElementById("content").innerHTML+="<br><form action=\"/delete/"+posts[key][0]+"\"><input type=\"submit\" value=\"delete\"></form>";
+					}
+					
+				document.getElementById("content").innerHTML+="<hr/ >";
+			}
+		}
+	}
+	function update() {
+    	var xhr = new XMLHttpRequest();
+    	xhr.onreadystatechange = function () {
+    	    if (xhr.readyState==4) {
+    	        try {
+    	            if (xhr.status==200) {
+    	                posts = JSON.parse(xhr.response);
+			printPosts();
+  			    		
+    	            }
+    	        } 
+    	        catch(e) {
+    	            alert('Error: ' + e.name);
+    	        }
+    	    }
+   	 };
+    	xhr.open("GET", "/get_user/"+cur_user, true);
+    	xhr.setRequestHeader("Content-Type","application/json;charset=UTF-8");
+   	xhr.send();
+
+	}
+	window.setInterval(update(), 1000);
+	</script>
+
+</body>
+{% endblock %}
+</html>
